@@ -60,7 +60,7 @@ try:
     draw.rectangle((0,0,width,height), outline=0, fill=0)
 
 
-   # Load default font.
+    # Load default font.
     font = ImageFont.load_default()
     # Display image.
     disp.image(image)
@@ -77,7 +77,7 @@ port  = "/dev/ttyAMA0"
 baud = 38400
 timeout = 5
 
-# ---- Camera Initialization -----
+# ----  Initializations  -----
 wordlength = 10000
 checkOK = ''
 ser = serial.Serial(port = port, baudrate = baud, timeout = timeout)
@@ -92,9 +92,6 @@ fh = open(folder + "imagedata.txt","w")
 fh.write("")
 fh.close()
 
-###########################
-# Initial Camera Settings #
-###########################
 
 #Camera Settings
 width = 650
@@ -105,23 +102,16 @@ brightness = 50
 contrast = 0
 saturation = 0
 iso = 400
-camera_annotation = 'hi'                # global variable for camera annottation, initialize to something to prevent dynamic typing from changing type
-cam_hflip = False                       # global variable for camera horizontal flip
-cam_vflip = False                       # global variable for camera vertical flip
+camera_annotation = ''                # global variable for camera annottation, initialize to something to prevent dynamic typing from changing type
+cam_hflip = True                       # global variable for camera horizontal flip
+cam_vflip = True                       # global variable for camera vertical flip
 
 # GPIO settings for camera mux
-# GPIO.setmode(GPIO.BOARD)        # use board numbering for GPIO header vs broadcom **** broadcom used in adafruit library dependant stuff ****
+#GPIO.setmode(GPIO.BOARD)        # use board numbering for GPIO header vs broadcom **** broadcom used in adafruit library dependant stuff ****
 GPIO.setup(selection, GPIO.OUT)         # mux "select"
 GPIO.setup(enable1, GPIO.OUT)           # mux "enable1"
 GPIO.setup(enable2, GPIO.OUT)           # mux "enable2"
 
-
-###############################
-# Cameras B-D are used in the #
-# multiplexer system. In the  #
-# single camera system they   #
-# are never used.             #
-###############################
 
 def enable_camera_A():
     global cam_hflip
@@ -131,9 +121,9 @@ def enable_camera_A():
     GPIO.output(enable2, True)          # pin that needs to be high set first to avoid enable 1 and 2 being low at same time
     GPIO.output(enable1, False)         # if coming from a camera that had enable 2 low then we set enable 1 low on next camera
     #GPIO.output(enable2, True)         # first, we would have both enables low at the same time
-    cam_hflip = False
-    cam_vflip = False
-    camera_annotation = 'Camera A'
+    cam_hflip = True
+    cam_vflip = True
+    camera_annotation = ''
     time.sleep(0.5)
     return
 
@@ -177,12 +167,131 @@ def enable_camera_D():
     time.sleep(0.5)
     return
 
-###########################
-# Method is used to reset #
-# the camera to default   #
-# settings.               #
-###########################
-   
+
+def initOLED():
+    global draw
+    global disp
+    global font
+    global image
+    disp.begin()
+    # Clear display.
+    disp.clear()
+    disp.display()
+
+    # Create blank image for drawing.
+    # Make sure to create image with mode '1' for 1-bit color.
+    width = disp.width
+    height = disp.height
+    image = Image.new('1', (width, height))
+
+    # Get drawing object to draw on image.
+    draw = ImageDraw.Draw(image)
+
+    # Draw a black filled box to clear the image.
+    draw.rectangle((0,0,width,height), outline=0, fill=0)
+
+
+    # Load default font.
+    font = ImageFont.load_default()
+
+    # Alternatively load a TTF font.
+    # Some other nice fonts to try: http://www.dafont.com/bitmap.php
+    #font = ImageFont.truetype('Minecraftia.ttf', 8)
+
+    # Write two lines of text.
+    draw.rectangle((0,0,width,height), outline=0, fill=0)
+    disp.image(image)
+    disp.display()
+
+#    image = Image.open("MSGC.png")
+#    image_r = image.resize((width,height),Image.BICUBIC)
+#    image_bw = image_r.convert("1")
+#
+#    # Get drawing object to draw on image.
+#    draw = ImageDraw.Draw(image)
+#
+#    for x in range(width):
+#        for y in range (height):
+#            disp.draw_pixel(x,y,bool(int(image_bw.getpixel((x,y)))))
+#    disp.display()
+#    time.sleep(1)
+    return
+
+def UpdateDisplay():
+    global i2cpresentflag
+    global draw
+    global disp
+    global image
+    global font
+    try:
+        result = subprocess.check_output(["sudo","i2cdetect","-y","1"])
+        if (i2cpresentflag == 1):
+            if "3c" in result:
+                initOLED()
+                i2cpresentflag = 0
+            else:
+                return
+        else:
+            if not "3c" in result:
+                i2cpresentflag = 1
+        FirstLine = str(datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S"))
+        SecondLine = ""
+        ThirdLine = ""
+        FourthLine = ""
+        try:
+            for line in reversed(list(open(folder+"piruntimedata.txt"))):
+                if (SecondLine == ""):
+                    SecondLine = line.rstrip()
+                elif (ThirdLine == ""):
+                    ThirdLine = line.rstrip()
+                elif (FourthLine == ""):
+                    FourthLine = line.rstrip()
+                else:
+                    break
+        except:
+            print "Error with Display Update"
+        draw.rectangle((0,0,width,height), outline=0, fill=0)
+        draw.text((0, 0), FirstLine,  font=font, fill=255)
+        draw.text((0,15), FourthLine, font=font, fill=255)
+        draw.text((0,30), ThirdLine, font=font, fill = 255)
+        draw.text((0,45), SecondLine, font=font, fill=255)
+        disp.image(image)
+        disp.display()
+        return
+    except:
+        return
+
+def smile():
+    global i2cpresentflag
+    global draw
+    global disp
+    global image
+    global font
+    try:
+        result = subprocess.check_output(["sudo","i2cdetect","-y","1"])
+        if (i2cpresentflag == 1):
+            if "3c" in result:
+                initOLED()
+                UpdateDisplay()
+                i2cpresentflag = 0
+            else:
+                return
+        else:
+            if not "3c" in result:
+                i2cpresentflag = 1
+        
+        draw.rectangle((0,0,width,height), outline=0, fill=0)
+        draw.text((0,0),"Capturing Photo...", font = font, fill = 255)
+        draw.line([(40,20),(40,35)],fill = 255)
+        draw.line([(50,20),(50,35)],fill = 255)
+        draw.arc((20,30,70,60),20,160,fill = 255)
+        disp.image(image)
+        disp.display()
+        time.sleep(0.5)
+        return
+    except:
+        return
+    
 def reset_cam():
     global width
     global height
@@ -209,23 +318,18 @@ def reset_cam():
     file.write(str(iso)+"\n")
     file.close()
 
-
-# Converts the image to an array of data points
 def image_to_b64(path):
     with open(path,"rb") as imageFile:
         return base64.b64encode(imageFile.read())
 
-# Converts an array of data points into an image
 def b64_to_image(data,savepath):
     fl = open(savepath,"wb")
     fl.write(data.decode('base4'))
     fl.close()
 
-# Generates the checksum used to verify packet transmission
 def gen_checksum(data,pos):
     return hashlib.md5(data[pos:pos+wordlength]).hexdigest()
 
-# Verifies the checksums
 def sendword(data,pos):
     if(pos + wordlength < len(data)):
         for x in range(pos, pos+wordlength):
@@ -235,10 +339,7 @@ def sendword(data,pos):
         for x in range(pos, len(data)):
             ser.write(data[x])
         return
-################################################################
-# Sync is used to sync the groundstation and the image system. #
-# It prevents an infinite loop by checking 5 times             #
-################################################################    
+    
 def sync():
     synccheck = ''
     synctry = 5
@@ -254,7 +355,7 @@ def sync():
     time.sleep(0.5)
     return
 
-# Transmits the image and uses the checksum method to verify transmission
+
 def send_image(exportpath, wordlength):
     timecheck = time.time()
     done = False
@@ -269,6 +370,7 @@ def send_image(exportpath, wordlength):
         checkours = gen_checksum(outbound,cur)
         ser.write(checkours)
         sendword(outbound,cur)
+        UpdateDisplay()
         checkOK = ser.read()
         if (checkOK == 'Y'):
             cur = cur + wordlength
@@ -286,6 +388,17 @@ def send_image(exportpath, wordlength):
     print "Image Send Complete"
     print "Send Time =", (time.time() - timecheck)
     return
+
+
+#class Unbuffered:
+#    def __init__(self,stream):
+#        self.stream = stream
+#    def write(self,data):
+#        pass
+#        self.stream.write(data)
+#        self.stream.flush()
+#        logfile.write(data)
+#        logfile.flush()
 
 class Unbuffered:
     def __init__(self,stream):
@@ -312,11 +425,13 @@ enable_camera_A()          # initialize the camera to something so mux is not fl
 
 while(True):
     print "RT:",int(time.time() - starttime),"Watching Serial"
+    UpdateDisplay()
     command = ser.read()
     if (command == '1'):
         ser.write('A')
         try:
             print "Send Image Command Received"
+            UpdateDisplay()
             #sync()
             print "Sending:", recentimg
             ser.write(recentimg)
@@ -327,6 +442,7 @@ while(True):
         ser.write('A')
         try:
             print "data list request recieved"
+            UpdateDisplay()
             #sync()
             file = open(folder+"imagedata.txt","r")
             print "Sending imagedata.txt"
@@ -341,6 +457,7 @@ while(True):
         ser.write('A')
         try:
             print"specific photo request recieved"
+            UpdateDisplay()
             sync()
             imagetosend = ser.read(15)
             send_image(folder+imagetosend,wordlength)
@@ -350,6 +467,7 @@ while(True):
         ser.write('A')
         try:
             print "Attempting to send camera settings"
+            UpdateDisplay()
             #sync()
             file = open(folder+"camerasettings.txt","r")
             temp = file.read()
@@ -366,6 +484,7 @@ while(True):
         ser.write('A')
         try:
             print "Attempting to update camera settings"
+            UpdateDisplay()
             file = open(folder+"camerasettings.txt","w")
             temp = ser.read()
             while(temp != ""):
@@ -381,6 +500,7 @@ while(True):
     if (command == '6'):
             ser.write('A')
             print "Ping Request Received"
+            UpdateDisplay()
             try:
                 termtime = time.time() + 10
                 pingread = ser.read()
@@ -401,6 +521,7 @@ while(True):
         ser.write('A')
         try:
             print "Attempting to send piruntimedata"
+            UpdateDisplay()
             #sync()
             file = open(folder+"piruntimedata.txt","r")
             temp = file.readline()
@@ -471,9 +592,8 @@ while(True):
         except:
             print "error with time sync"
     
-
-#Creates a loop to check when a picture needs to be taken
     if (checkpoint < time.time()):
+        UpdateDisplay()
         camera = picamera.PiCamera()
         try:
             file = open(folder+"camerasettings.txt","r")
@@ -502,6 +622,7 @@ while(True):
         camera.annotate_background = picamera.Color('black')
         camera.annotate_text = camera_annotation
         #camera.start_preview()
+        smile()
         camera.capture(folder+"%s%04d%s" %("image",imagenumber,"_a"+extension))
         print "( 2592 , 1944 ) photo saved"
         #UpdateDisplay()
@@ -512,8 +633,10 @@ while(True):
         camera.hflip = cam_hflip
         camera.vflip = cam_vflip
         camera.annotate_text = camera_annotation
+        #smile()
         camera.capture(folder+"%s%04d%s" %("image",imagenumber,"_b"+extension))
         print "(",width,",",height,") photo saved"
+        UpdateDisplay()
         fh.write("%s%04d%s @ time(%s) settings(w=%d,h=%d,sh=%d,b=%d,c=%d,sa=%d,i=%d)\n" % ("image",imagenumber,"_b"+extension,str(datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S")),width,height,sharpness,brightness,contrast,saturation,iso))
         print "settings file updated"
         #camera.stop_preview()
