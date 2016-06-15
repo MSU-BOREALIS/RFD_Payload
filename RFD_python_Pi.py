@@ -16,18 +16,7 @@ from array import array
 import RPi.GPIO as GPIO
 
 
-#------------
-    #Adafruit
-
-#import Adafruit_GPIO.SPI as SPI
-import Adafruit_SSD1306
-
-import Image
-import ImageDraw
-import ImageFont
-
-
-
+# -------------------------    GPIO inits  ---------------------------------------------
 # ------- Raspberry Pi pin configuration: -----
 # camera mux enable pins
 # board numbering
@@ -36,54 +25,36 @@ import ImageFont
 #enable2 = 12                            # variable used for GPIO pin 12 - mux "enable 2"
 
 # broadcom numbering    ***** used by adafruits libraries *****
+#  **** may have to remove GPIO settings if using a mux or other "shield"
 selection = 4
 enable1 = 17
 enable2 = 18
 
-RST = 24
-try:
-    disp = Adafruit_SSD1306.SSD1306_128_64(rst=RST)
-    # Initialize library.
-    disp.begin()
-    # Clear display.
-    disp.clear()
-    disp.display()
-
-    # Create blank image for drawing.
-    # Make sure to create image with mode '1' for 1-bit color.
-    width = disp.width
-    height = disp.height
-    # Get drawing object to draw on image.
-    draw = ImageDraw.Draw(image)
-
-    # Draw a black filled box to clear the image.3
-    draw.rectangle((0,0,width,height), outline=0, fill=0)
+# GPIO.setmode(GPIO.BOARD)        # use board numbering for GPIO header vs broadcom **** broadcom used in adafruit library dependant stuff ****
+GPIO.setmode(GPIO.BCM)           # broadcom numbering, may not matter if not using oled or any adafruit libraries that need BCM
+# GPIO settings for camera mux
+GPIO.setup(selection, GPIO.OUT)         # mux "select"
+GPIO.setup(enable1, GPIO.OUT)           # mux "enable1"
+GPIO.setup(enable2, GPIO.OUT)           # mux "enable2"
+# -------------------------------------------------------------------------------------------
 
 
-   # Load default font.
-    font = ImageFont.load_default()
-    # Display image.
-    disp.image(image)
-    disp.display()
-except:
-    i2cpresentflag = 1
-
-#I2C check value
-i2cpresentflag = 1
-
-
+#  ---------------------  Comms inits ----------------------
 #Serial Variables
 port  = "/dev/ttyAMA0"
 baud = 38400
 timeout = 5
-
-# ---- Camera Initialization -----
 wordlength = 10000
 checkOK = ''
 ser = serial.Serial(port = port, baudrate = baud, timeout = timeout)
+#  ----------------------------------------------------------
+
+#  -------------------  camera and directory initis  -----------------
 pic_interval = 60
 extension = ".jpg"
+#  **** folder can be machine specific  ****
 folder = "/home/pi/RFD_Pi_Code/%s/" % strftime("%m%d%Y_%H%M%S")
+
 dir = os.path.dirname(folder)
 if not os.path.exists(dir):
     os.mkdir(dir)
@@ -92,10 +63,26 @@ fh = open(folder + "imagedata.txt","w")
 fh.write("")
 fh.close()
 
+class Unbuffered:
+    def __init__(self,stream):
+        self.stream = stream
+    def write(self,data):
+        self.stream.write(data)
+        self.stream.flush()
+        logfile.write(data)
+        logfile.flush()
+
+logfile = open(folder+"piruntimedata.txt","w")
+logfile.close()
+logfile = open(folder+"piruntimedata.txt","a")
+sys.stdout = Unbuffered(sys.stdout)
+
+
 ###########################
 # Initial Camera Settings #
 ###########################
-
+imagenumber = 0
+recentimg = ""
 #Camera Settings
 width = 650
 height = 450 
@@ -105,16 +92,14 @@ brightness = 50
 contrast = 0
 saturation = 0
 iso = 400
-camera_annotation = 'hi'                # global variable for camera annottation, initialize to something to prevent dynamic typing from changing type
-cam_hflip = False                       # global variable for camera horizontal flip
-cam_vflip = False                       # global variable for camera vertical flip
+camera_annotation = ''                # global variable for camera annottation, initialize to something to prevent dynamic typing from changing type
+cam_hflip = True                       # global variable for camera horizontal flip
+cam_vflip = True                       # global variable for camera vertical flip
 
-# GPIO settings for camera mux
-# GPIO.setmode(GPIO.BOARD)        # use board numbering for GPIO header vs broadcom **** broadcom used in adafruit library dependant stuff ****
-GPIO.setup(selection, GPIO.OUT)         # mux "select"
-GPIO.setup(enable1, GPIO.OUT)           # mux "enable1"
-GPIO.setup(enable2, GPIO.OUT)           # mux "enable2"
+#  ------------------------------------- end of opening inits  -------------------
 
+
+#  ------------------------  Method/funciton defs  -------------------------------
 
 ###############################
 # Cameras B-D are used in the #
@@ -131,9 +116,9 @@ def enable_camera_A():
     GPIO.output(enable2, True)          # pin that needs to be high set first to avoid enable 1 and 2 being low at same time
     GPIO.output(enable1, False)         # if coming from a camera that had enable 2 low then we set enable 1 low on next camera
     #GPIO.output(enable2, True)         # first, we would have both enables low at the same time
-    cam_hflip = False
-    cam_vflip = False
-    camera_annotation = 'Camera A'
+    cam_hflip = True
+    cam_vflip = True
+    camera_annotation = ''
     time.sleep(0.5)
     return
 
@@ -145,12 +130,13 @@ def enable_camera_B():
     GPIO.output(enable2, True)
     GPIO.output(enable1, False)
     #GPIO.output(enable2, True)
-    cam_hflip = False
-    cam_vflip = False
-    camera_annotation = 'Camera B'
+    cam_hflip = True
+    cam_vflip = True
+    camera_annotation = ''
     time.sleep(0.5)                        # ??? are these delays going to mess with timming else where ???
     return
 
+'''
 def enable_camera_C():
     global cam_hflip
     global cam_vflip
@@ -176,6 +162,7 @@ def enable_camera_D():
     camera_annotation = 'Camera D'
     time.sleep(0.5)
     return
+'''
 
 ###########################
 # Method is used to reset #
@@ -287,29 +274,20 @@ def send_image(exportpath, wordlength):
     print "Send Time =", (time.time() - timecheck)
     return
 
-class Unbuffered:
-    def __init__(self,stream):
-        self.stream = stream
-    def write(self,data):
-        self.stream.write(data)
-        self.stream.flush()
-        logfile.write(data)
-        logfile.flush()
+#  ---------------- end of method/funciton defs  -------------------
 
-logfile = open(folder+"piruntimedata.txt","w")
-logfile.close()
-logfile = open(folder+"piruntimedata.txt","a")
-sys.stdout = Unbuffered(sys.stdout)
-imagenumber = 0
-recentimg = ""
+#  --------------  Last inits  --------------------
 reset_cam()
 starttime = time.time()
 print "Startime @ ",starttime
 checkpoint = time.time()
 
 enable_camera_A()          # initialize the camera to something so mux is not floating
+                           # maybe remove enabling camera if not using mxu???
+# -------  last of inits and start program loop --------
 
 
+#  ------------  starting program loop  ------------------
 while(True):
     print "RT:",int(time.time() - starttime),"Watching Serial"
     command = ser.read()
