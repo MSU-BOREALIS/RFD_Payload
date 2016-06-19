@@ -91,7 +91,7 @@ sharpness = 0
 brightness = 50
 contrast = 0
 saturation = 0
-iso = 400
+iso = 100
 camera_annotation = ''                # global variable for camera annottation, initialize to something to prevent dynamic typing from changing type
 cam_hflip = True                       # global variable for camera horizontal flip
 cam_vflip = True                       # global variable for camera vertical flip
@@ -185,7 +185,7 @@ def reset_cam():
     brightness = 50
     contrast = 0
     saturation = 0
-    iso = 400
+    iso = 100
     file = open(folder + "camerasettings.txt","w")
     file.write(str(width)+"\n")
     file.write(str(height)+"\n")
@@ -242,6 +242,7 @@ def sync():
     return
 
 # Transmits the image and uses the checksum method to verify transmission
+#  *** Why are we passing worlength and not using global wordlength here ???  ***
 def send_image(exportpath, wordlength):
     timecheck = time.time()
     done = False
@@ -288,6 +289,10 @@ enable_camera_A()          # initialize the camera to something so mux is not fl
 
 
 #  ------------  starting program loop  ------------------
+# *** should make these methods and use a switch/case ****
+
+#  **  maybe make RFD library to import and the swtich and program loop 
+#  **  would make easy to read and change    ****
 while(True):
     print "RT:",int(time.time() - starttime),"Watching Serial"
     command = ser.read()
@@ -324,6 +329,8 @@ while(True):
             send_image(folder+imagetosend,wordlength)
         except:
             print "Send Specific Image Error"
+
+# *** should make these methods and use a switch/case ****
     if (command == '4'):
         ser.write('A')
         try:
