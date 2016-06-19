@@ -91,7 +91,7 @@ sharpness = 0
 brightness = 50
 contrast = 0
 saturation = 0
-iso = 400
+iso = 100
 camera_annotation = ''                # global variable for camera annottation, initialize to something to prevent dynamic typing from changing type
 cam_hflip = True                       # global variable for camera horizontal flip
 cam_vflip = True                       # global variable for camera vertical flip
@@ -185,7 +185,7 @@ def reset_cam():
     brightness = 50
     contrast = 0
     saturation = 0
-    iso = 400
+    iso = 100
     file = open(folder + "camerasettings.txt","w")
     file.write(str(width)+"\n")
     file.write(str(height)+"\n")
