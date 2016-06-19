@@ -164,6 +164,18 @@ def enable_camera_D():
     return
 '''
 
+# method to decrease packet size
+def decrease_wordlength():
+    global wordlength
+    wordlength -= 1000      # *** maybe make this increment/decrement a variable
+    print 'wordlength set to : ', wordlength
+
+# method to increae packet size
+def increase_wordlength():
+    global wordlength
+    wordlength += 1000      # *** maybe make this increment/decrement a variable
+    print 'wordlength set to : ', wordlength
+
 ###########################
 # Method is used to reset #
 # the camera to default   #
@@ -243,7 +255,7 @@ def sync():
 
 # Transmits the image and uses the checksum method to verify transmission
 #  *** Why are we passing worlength and not using global wordlength here ???  ***
-def send_image(exportpath, wordlength):
+def send_image(exportpath, wordlength):   # *** why not using global wordlength ??? ***
     timecheck = time.time()
     done = False
     cur = 0
@@ -291,7 +303,7 @@ enable_camera_A()          # initialize the camera to something so mux is not fl
 #  ------------  starting program loop  ------------------
 # *** should make these methods and use a switch/case ****
 
-#  **  maybe make RFD library to import and the swtich and program loop 
+#  **  maybe make RFD library to import, then swtich/case and program loop 
 #  **  would make easy to read and change    ****
 while(True):
     print "RT:",int(time.time() - starttime),"Watching Serial"
@@ -398,7 +410,7 @@ while(True):
         except:
             print "error sending piruntimedata.txt"
 
-# ------  camera/mux commands  --------
+# ------  camera/mux commands  --------  modify these to easily repurpose gui buttons in ground code
 
     if (command == '8'):             # enable camera a
         ser.write('A')
@@ -422,27 +434,20 @@ while(True):
         except:
             print 'Not done, need to implement catch condition for enable camera B'
 
-    if (command == 'c'):             # enable camera c
+## **** should we use a "a" or not confuse with ack ???
+    if (command == 'b'):
         ser.write('A')
         try:
-            print 'command received to enable camera C, attempting to enable camera C'
-            enable_camera_C()
-            #time.sleep(2)
-            print 'returned from enabling camera C'
-
-        except:
-            print 'Not done, need to implement catch condition for enable camera C'
+            print 'decrease_wordlength() called'
+            decrease_wordlength()
             
-    if (command == 'd'):             # enable camera d
-        ser.write('A')
-        try:
-            print 'command received to enable camera D, attempting to enable camera D'
-            enable_camera_D()
-            #time.sleep(2)
-            print 'returned from enabling camera D'
+            print 'returned from decrease_wordlength()'
 
         except:
-            print 'Not done, need to implement catch condition for enable camera D'
+            print 'Not done, need to implement catch condition for command b'
+            
+    
+
 # -----  end of camera commands  -----------------
 
     if (command == 'T'):
