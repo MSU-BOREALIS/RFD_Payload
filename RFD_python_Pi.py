@@ -117,7 +117,7 @@ def enable_camera_A():
     cam_hflip = True
     cam_vflip = True
     camera_annotation = 'Cam_A'
-    time.sleep(0.5)
+    time.sleep(0.1)
     return
 
 def enable_camera_B():
@@ -129,7 +129,7 @@ def enable_camera_B():
     cam_hflip = True
     cam_vflip = True
     camera_annotation = 'Cam_B'
-    time.sleep(0.5)                        # ??? are these delays going to mess with timming else where ???
+    time.sleep(0.1)                        # ??? are these delays going to mess with timming else where ???
     return
 
 
@@ -462,8 +462,9 @@ while(True):
         camera.vflip = cam_vflip
         camera.annotate_background = picamera.Color('black')
         camera.annotate_text = camera_annotation
-        GPIO.output(output_enable, False)                # turn on OE for camera mux
 
+        GPIO.output(output_enable, False)                # turn on OE for camera mux
+        time.sleep(.2)
         #camera.start_preview()
         camera.capture(folder+"%s%04d%s" %("image",imagenumber,"_a"+extension))
         print "( 2592 , 1944 ) photo saved"
@@ -480,8 +481,8 @@ while(True):
         fh.write("%s%04d%s @ time(%s) settings(w=%d,h=%d,sh=%d,b=%d,c=%d,sa=%d,i=%d)\n" % ("image",imagenumber,"_b"+extension,str(datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S")),width,height,sharpness,brightness,contrast,saturation,iso))
         print "settings file updated"
         #camera.stop_preview()
-
         GPIO.output(output_enable, True)                 # turn off OE for camera mux
+
         camera.close()
         #print "camera closed"
         recentimg = "%s%04d%s" %("image",imagenumber,"_b"+extension)
