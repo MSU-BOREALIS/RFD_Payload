@@ -167,13 +167,13 @@ def enable_camera_D():
 # method to decrease packet size
 def decrease_wordlength():
     global wordlength
-    wordlength -= 1000      # *** maybe make this increment/decrement a variable
+    wordlength -= 1000      # *** maybe make this increment/decrement amount a variable
     print 'wordlength set to : ', wordlength
 
 # method to increae packet size
 def increase_wordlength():
     global wordlength
-    wordlength += 1000      # *** maybe make this increment/decrement a variable
+    wordlength += 1000      # *** maybe make this increment/decrement amount a variable
     print 'wordlength set to : ', wordlength
 
 ###########################
@@ -445,6 +445,17 @@ while(True):
 
         except:
             print 'Not done, need to implement catch condition for command b'
+
+    if (command == 'c'):
+        ser.write('A')
+        try:
+            print 'increase_wordlength() called'
+            increase_wordlength()
+            
+            print 'returned from increase_wordlength()'
+
+        except:
+            print 'Not done, need to implement catch condition for command c'
             
     
 
