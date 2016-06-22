@@ -244,6 +244,17 @@ def send_image(exportpath, wordlength):
     print "Send Time =", (time.time() - timecheck)
     return
 
+# method to decrease packet size
+def decrease_wordlength():
+    global wordlength
+    wordlength -= 1000      # *** maybe make this increment/decrement amount a variable
+    print 'wordlength set to : ', wordlength
+
+# method to increae packet size
+def increase_wordlength():
+    global wordlength
+    wordlength += 1000      # *** maybe make this increment/decrement amount a variable
+    print 'wordlength set to : ', wordlength
 #  ---------------- end of method/funciton defs  -------------------
 
 #  --------------  Last inits  --------------------
@@ -384,29 +395,31 @@ while(True):
 
         except:
             print 'Not done, need to implement catch condition for enable camera B'
-
-    if (command == 'c'):             # enable camera c
-        ser.write('A')
-        try:
-            print 'command received to enable camera C, attempting to enable camera C'
-            enable_camera_C()
-            #time.sleep(2)
-            print 'returned from enabling camera C'
-
-        except:
-            print 'Not done, need to implement catch condition for enable camera C'
-            
-    if (command == 'd'):             # enable camera d
-        ser.write('A')
-        try:
-            print 'command received to enable camera D, attempting to enable camera D'
-            enable_camera_D()
-            #time.sleep(2)
-            print 'returned from enabling camera D'
-
-        except:
-            print 'Not done, need to implement catch condition for enable camera D'
 # -----  end of camera commands  -----------------
+
+# -------- wordlength commands  ---------------------
+    if (command == 'b'):
+        ser.write('A')
+        try:
+            print 'decrease_wordlength() called'
+            decrease_wordlength()
+            
+            print 'returned from decrease_wordlength()'
+
+        except:
+            print 'Not done, need to implement catch condition for command b'
+
+    if (command == 'c'):
+        ser.write('A')
+        try:
+            print 'increase_wordlength() called'
+            increase_wordlength()
+            
+            print 'returned from increase_wordlength()'
+
+        except:
+            print 'Not done, need to implement catch condition for command c'
+#  ---------- end wordlength commands  ----------------
 
     if (command == 'T'):
         ser.write('A')
