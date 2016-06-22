@@ -25,17 +25,17 @@ import RPi.GPIO as GPIO
 #enable2 = 12                            # variable used for GPIO pin 12 - mux "enable 2"
 
 # broadcom numbering    ***** used by adafruits libraries *****
-#  **** may have to remove GPIO settings if using a mux or other "shield"
-selection = 4
-enable1 = 17
-enable2 = 18
+selection = 9          # select line for mux low = camA high = camB
+output_enable =  10    # active low
 
 # GPIO.setmode(GPIO.BOARD)        # use board numbering for GPIO header vs broadcom **** broadcom used in adafruit library dependant stuff ****
 GPIO.setmode(GPIO.BCM)           # broadcom numbering, may not matter if not using oled or any adafruit libraries that need BCM
 # GPIO settings for camera mux
 GPIO.setup(selection, GPIO.OUT)         # mux "select"
-GPIO.setup(enable1, GPIO.OUT)           # mux "enable1"
-GPIO.setup(enable2, GPIO.OUT)           # mux "enable2"
+GPIO.setup(output_enable, GPIO.OUT)     # mux output enable, active low
+
+GPIO.output(selection, False)
+GPIO.output(output_enable, True)        # initialize high since OE is active low
 # -------------------------------------------------------------------------------------------
 
 
@@ -113,12 +113,10 @@ def enable_camera_A():
     global cam_vflip
     global camera_annotation
     GPIO.output(selection, False)
-    GPIO.output(enable2, True)          # pin that needs to be high set first to avoid enable 1 and 2 being low at same time
-    GPIO.output(enable1, False)         # if coming from a camera that had enable 2 low then we set enable 1 low on next camera
-    #GPIO.output(enable2, True)         # first, we would have both enables low at the same time
+    GPIO.output(output_enable, True) # **** active low ***** maybe not have this here?
     cam_hflip = True
     cam_vflip = True
-    camera_annotation = ''
+    camera_annotation = 'Cam_A'
     time.sleep(0.5)
     return
 
@@ -127,42 +125,14 @@ def enable_camera_B():
     global cam_vflip
     global camera_annotation
     GPIO.output(selection, True)
-    GPIO.output(enable2, True)
-    GPIO.output(enable1, False)
-    #GPIO.output(enable2, True)
+    GPIO.output(output_enable, True)  # **** active low **** maybe not have this here?
     cam_hflip = True
     cam_vflip = True
-    camera_annotation = ''
+    camera_annotation = 'Cam_B'
     time.sleep(0.5)                        # ??? are these delays going to mess with timming else where ???
     return
 
-'''
-def enable_camera_C():
-    global cam_hflip
-    global cam_vflip
-    global camera_annotation
-    GPIO.output(selection, False)
-    GPIO.output(enable1, True)           # make sure first enable pin to be changed is going high
-    GPIO.output(enable2, False)
-    cam_hflip = False
-    cam_vflip = False
-    camera_annotation = 'Camera C'
-    time.sleep(0.5)
-    return
 
-def enable_camera_D():
-    global cam_hflip
-    global cam_vflip
-    global camera_annotation
-    GPIO.output(selection, True)
-    GPIO.output(enable1, True)
-    GPIO.output(enable2, False)
-    cam_hflip = False
-    cam_vflip = False
-    camera_annotation = 'Camera D'
-    time.sleep(0.5)
-    return
-'''
 
 ###########################
 # Method is used to reset #
@@ -479,6 +449,8 @@ while(True):
         camera.vflip = cam_vflip
         camera.annotate_background = picamera.Color('black')
         camera.annotate_text = camera_annotation
+        GPIO.output(output_enable, False)                # turn on OE for camera mux
+
         #camera.start_preview()
         camera.capture(folder+"%s%04d%s" %("image",imagenumber,"_a"+extension))
         print "( 2592 , 1944 ) photo saved"
@@ -495,6 +467,8 @@ while(True):
         fh.write("%s%04d%s @ time(%s) settings(w=%d,h=%d,sh=%d,b=%d,c=%d,sa=%d,i=%d)\n" % ("image",imagenumber,"_b"+extension,str(datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S")),width,height,sharpness,brightness,contrast,saturation,iso))
         print "settings file updated"
         #camera.stop_preview()
+
+        GPIO.output(output_enable, True)                 # turn off OE for camera mux
         camera.close()
         #print "camera closed"
         recentimg = "%s%04d%s" %("image",imagenumber,"_b"+extension)
