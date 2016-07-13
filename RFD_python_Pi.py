@@ -1,3 +1,5 @@
+# IR_flight
+
 import time, threading
 from time import strftime
 import subprocess
@@ -15,7 +17,7 @@ import string
 from array import array
 import RPi.GPIO as GPIO
 
-#   tesing
+
 # -------------------------    GPIO inits  ---------------------------------------------
 # ------- Raspberry Pi pin configuration: -----
 # camera mux enable pins
