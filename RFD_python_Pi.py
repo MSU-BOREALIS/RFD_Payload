@@ -56,6 +56,7 @@ pic_interval = 60
 extension = ".jpg"
 #  **** folder can be machine specific  ****
 folder = "/home/pi/RFD_Pi_Code/%s/" % strftime("%m%d%Y_%H%M%S")
+ir_folder = "/home/pi/Desktop/IR_Photo/%s/" % strftime("%m%d%Y_%H%M%S")
 
 dir = os.path.dirname(folder)
 if not os.path.exists(dir):
@@ -465,9 +466,10 @@ while(True):
         camera.annotate_background = picamera.Color('black')
         camera.annotate_text = camera_annotation
 
-        GPIO.output(output_enable, False)                # turn on OE for camera mux
+        GPIO.output(output_enable, False)                # turn on Output Enable for camera mux
         time.sleep(.2)
-        #camera.start_preview()
+        camera.start_preview()
+        time.sleep(1)
         camera.capture(folder+"%s%04d%s" %("image",imagenumber,"_a"+extension))
         print "( 2592 , 1944 ) photo saved"
         #UpdateDisplay()
@@ -482,10 +484,9 @@ while(True):
         print "(",width,",",height,") photo saved"
         fh.write("%s%04d%s @ time(%s) settings(w=%d,h=%d,sh=%d,b=%d,c=%d,sa=%d,i=%d)\n" % ("image",imagenumber,"_b"+extension,str(datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S")),width,height,sharpness,brightness,contrast,saturation,iso))
         print "settings file updated"
-        #camera.stop_preview()
         GPIO.output(output_enable, True)                 # turn off OE for camera mux
-
-        camera.close()
+        camera.stop_preview()
+        #camera.close()
         #print "camera closed"
         recentimg = "%s%04d%s" %("image",imagenumber,"_b"+extension)
         #print "resent image variable updated"
@@ -494,6 +495,18 @@ while(True):
         print "Most Recent Image Saved as", recentimg
         imagenumber += 1
         checkpoint = time.time() + pic_interval
+
+        enable_camera_B()
+        GPIO.output(output_enable, False)
+        time.sleep(.2)
+        camera.resolution = (3280,2464)
+        camera.start_preview()
+        time.sleep(1)
+        camera.capture(ir_folder+"%s%04d%s" %("image",imagenumber,"_a"+".png"))
+        camera.stop_preview()
+        camera.close()
+        enable_camera_A()
+
     ser.flushInput()
     ser.flushOutput()
 
