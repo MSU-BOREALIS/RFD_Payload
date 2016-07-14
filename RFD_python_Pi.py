@@ -487,7 +487,7 @@ while(True):
 
         #UpdateDisplay()
         fh = open(folder+"imagedata.txt","a")
-        fh.write("%s%04d%s @ time(%s) settings(w=%d,h=%d,sh=%d,b=%d,c=%d,sa=%d,i=%d)\n" % ("image",imagenumber,"_a"+extension,str(datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S")),2592,1944,sharpness,brightness,contrast,saturation,iso,pre_lux,post_lux))
+        fh.write("%s%04d%s @ time(%s) settings(w=%d,h=%d,sh=%d,b=%d,c=%d,sa=%d,i=%d,pr=%d,po=%d)\n" % ("image",imagenumber,"_a"+extension,str(datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S")),2592,1944,sharpness,brightness,contrast,saturation,iso,pre_lux,post_lux))
         camera.resolution = (width,height)
         extension = '.jpg'
         camera.hflip = cam_hflip
@@ -495,7 +495,7 @@ while(True):
         camera.annotate_text = camera_annotation
         camera.capture(folder+"%s%04d%s" %("image",imagenumber,"_b"+extension))
         print "(",width,",",height,") photo saved"
-        fh.write("%s%04d%s @ time(%s) settings(w=%d,h=%d,sh=%d,b=%d,c=%d,sa=%d,i=%d)\n" % ("image",imagenumber,"_b"+extension,str(datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S")),width,height,sharpness,brightness,contrast,saturation,iso,pre_lux,post_lux))
+        fh.write("%s%04d%s @ time(%s) settings(w=%d,h=%d,sh=%d,b=%d,c=%d,sa=%d,i=%d,pr=%d,po=%d)\n" % ("image",imagenumber,"_b"+extension,str(datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S")),width,height,sharpness,brightness,contrast,saturation,iso,pre_lux,post_lux))
         print "settings file updated"
         GPIO.output(output_enable, True)                 # turn off OE for camera mux
         camera.stop_preview()
