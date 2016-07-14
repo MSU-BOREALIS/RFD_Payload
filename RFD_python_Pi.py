@@ -57,7 +57,7 @@ tsl = tsl2591.Tsl2591()  # initialize
 pic_interval = 60
 extension = ".jpg"
 #  **** folder can be machine specific  ****
-folder = "/home/pi/RFD_Payload/%s/" % strftime("%m%d%Y_%H%M%S")
+folder = "/home/pi/RFD_Pics/%s/" % strftime("%m%d%Y_%H%M%S")
 ir_folder = "/home/pi/Desktop/IR_Photo/%s/" % strftime("%m%d%Y_%H%M%S")
 
 dir = os.path.dirname(folder)
