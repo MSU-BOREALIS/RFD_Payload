@@ -16,6 +16,7 @@ import re
 import string
 from array import array
 import RPi.GPIO as GPIO
+import tsl2591
 
 
 # -------------------------    GPIO inits  ---------------------------------------------
@@ -52,6 +53,7 @@ ser = serial.Serial(port = port, baudrate = baud, timeout = timeout)
 #  ----------------------------------------------------------
 
 #  -------------------  camera and directory initis  -----------------
+tsl = tsl2591.Tsl2591()  # initialize
 pic_interval = 60
 extension = ".jpg"
 #  **** folder can be machine specific  ****
@@ -468,13 +470,24 @@ while(True):
 
         GPIO.output(output_enable, False)                # turn on Output Enable for camera mux
         time.sleep(.2)
+
+        #read in lux value here for pre_lux
+        full, ir = tsl.get_full_luminosity()  # read raw values (full spectrum and ir spectrum)
+        pre_lux = tsl.calculate_lux(full, ir)  # convert raw values to lux
+
         camera.start_preview()
         time.sleep(1)
         camera.capture(folder+"%s%04d%s" %("image",imagenumber,"_a"+extension))
         print "( 2592 , 1944 ) photo saved"
+
+
+        #read in lux value here for post_lux
+        full, ir = tsl.get_full_luminosity()  # read raw values (full spectrum and ir spectrum)
+        post_lux = tsl.calculate_lux(full, ir)  # convert raw values to lux
+
         #UpdateDisplay()
         fh = open(folder+"imagedata.txt","a")
-        fh.write("%s%04d%s @ time(%s) settings(w=%d,h=%d,sh=%d,b=%d,c=%d,sa=%d,i=%d)\n" % ("image",imagenumber,"_a"+extension,str(datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S")),2592,1944,sharpness,brightness,contrast,saturation,iso))
+        fh.write("%s%04d%s @ time(%s) settings(w=%d,h=%d,sh=%d,b=%d,c=%d,sa=%d,i=%d)\n" % ("image",imagenumber,"_a"+extension,str(datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S")),2592,1944,sharpness,brightness,contrast,saturation,iso,pre_lux,post_lux))
         camera.resolution = (width,height)
         extension = '.jpg'
         camera.hflip = cam_hflip
@@ -482,7 +495,7 @@ while(True):
         camera.annotate_text = camera_annotation
         camera.capture(folder+"%s%04d%s" %("image",imagenumber,"_b"+extension))
         print "(",width,",",height,") photo saved"
-        fh.write("%s%04d%s @ time(%s) settings(w=%d,h=%d,sh=%d,b=%d,c=%d,sa=%d,i=%d)\n" % ("image",imagenumber,"_b"+extension,str(datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S")),width,height,sharpness,brightness,contrast,saturation,iso))
+        fh.write("%s%04d%s @ time(%s) settings(w=%d,h=%d,sh=%d,b=%d,c=%d,sa=%d,i=%d)\n" % ("image",imagenumber,"_b"+extension,str(datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S")),width,height,sharpness,brightness,contrast,saturation,iso,pre_lux,post_lux))
         print "settings file updated"
         GPIO.output(output_enable, True)                 # turn off OE for camera mux
         camera.stop_preview()
