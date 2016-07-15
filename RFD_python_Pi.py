@@ -63,6 +63,10 @@ ir_folder = "/home/pi/Desktop/IR_Photo/%s/" % strftime("%m%d%Y_%H%M%S")
 dir = os.path.dirname(folder)
 if not os.path.exists(dir):
     os.mkdir(dir)
+
+IR_dir = os.path.dirname(ir_folder)
+if not os.path.exists(IR_dir):
+    os.mkdir(IR_dir)
     
 fh = open(folder + "imagedata.txt","w")
 fh.write("")
@@ -121,7 +125,7 @@ def enable_camera_A():
     GPIO.output(output_enable, True) # **** active low ***** maybe not have this here?
     cam_hflip = True
     cam_vflip = True
-    camera_annotation = 'Cam_A'
+    camera_annotation = ''
     time.sleep(0.1)
     return
 
@@ -133,7 +137,7 @@ def enable_camera_B():
     GPIO.output(output_enable, True)  # **** active low **** maybe not have this here?
     cam_hflip = True
     cam_vflip = True
-    camera_annotation = 'Cam_B'
+    camera_annotation = ''
     time.sleep(0.1)                        # ??? are these delays going to mess with timming else where ???
     return
 
@@ -485,7 +489,6 @@ while(True):
         full, ir = tsl.get_full_luminosity()  # read raw values (full spectrum and ir spectrum)
         post_lux = tsl.calculate_lux(full, ir)  # convert raw values to lux
 
-        #UpdateDisplay()
         fh = open(folder+"imagedata.txt","a")
         fh.write("%s%04d%s @ time(%s) settings(w=%d,h=%d,sh=%d,b=%d,c=%d,sa=%d,i=%d,pr=%d,po=%d)\n" % ("image",imagenumber,"_a"+extension,str(datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S")),2592,1944,sharpness,brightness,contrast,saturation,iso,pre_lux,post_lux))
         camera.resolution = (width,height)
@@ -512,7 +515,8 @@ while(True):
         enable_camera_B()
         GPIO.output(output_enable, False)
         time.sleep(.2)
-        camera.resolution = (3280,2464)
+        #camera.resolution = (3280,2464)
+        camera.resolution = (2592,1944)
         camera.start_preview()
         time.sleep(1)
         camera.capture(ir_folder+"%s%04d%s" %("image",imagenumber,"_a"+".png"))
