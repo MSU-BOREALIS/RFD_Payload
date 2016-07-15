@@ -508,7 +508,7 @@ while(True):
         fh.write("%s%04d%s @ time(%s) settings(w=%d,h=%d,sh=%d,b=%d,c=%d,sa=%d,i=%d,pr=%d,po=%d)\n" % ("image",imagenumber,"_b"+extension,str(datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S")),width,height,sharpness,brightness,contrast,saturation,iso,pre_lux,post_lux))
         print "settings file updated"
 
-        #GPIO.output(output_enable, True)                 # turn off OE for camera mux
+        GPIO.output(output_enable, True)                 # turn off OE for camera mux
         camera.stop_preview()            #   *** *** maybe stop preview before OE disabled  ***  ***
         #camera.close()
         #print "camera closed"
@@ -523,7 +523,7 @@ while(True):
         # *** start No IR camera sequence  ***
         #
         enable_camera_B()
-        #GPIO.output(output_enable, False)     # enable  output on mux (active low)
+        GPIO.output(output_enable, False)     # enable  output on mux (active low)
         time.sleep(.2)
         #camera.resolution = (3280,2464)
         camera.resolution = (2592,1944)
