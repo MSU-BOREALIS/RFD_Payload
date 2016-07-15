@@ -137,7 +137,7 @@ def enable_camera_B():
     GPIO.output(output_enable, True)  # **** active low **** maybe not have this here?
     cam_hflip = True
     cam_vflip = True
-    camera_annotation = ''
+    camera_annotation = 'no IR filter '   ####  used for July 15th 2016 flight  ###
     time.sleep(0.1)                        # ??? are these delays going to mess with timming else where ???
     return
 
@@ -501,7 +501,7 @@ while(True):
         fh.write("%s%04d%s @ time(%s) settings(w=%d,h=%d,sh=%d,b=%d,c=%d,sa=%d,i=%d,pr=%d,po=%d)\n" % ("image",imagenumber,"_b"+extension,str(datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S")),width,height,sharpness,brightness,contrast,saturation,iso,pre_lux,post_lux))
         print "settings file updated"
         GPIO.output(output_enable, True)                 # turn off OE for camera mux
-        camera.stop_preview()
+        camera.stop_preview()            #   *** *** maybe stop preview before OE disabled  ***  ***
         #camera.close()
         #print "camera closed"
         recentimg = "%s%04d%s" %("image",imagenumber,"_b"+extension)
@@ -511,16 +511,22 @@ while(True):
         print "Most Recent Image Saved as", recentimg
         imagenumber += 1
         checkpoint = time.time() + pic_interval
-
+        #
+        # *** start No IR camera sequence  ***
+        #
         enable_camera_B()
-        GPIO.output(output_enable, False)
+        GPIO.output(output_enable, False)     # enable  output on mux (active low)
         time.sleep(.2)
         #camera.resolution = (3280,2464)
         camera.resolution = (2592,1944)
+        camera.hflip = cam_hflip
+        camera.vflip = cam_vflip
+        camera.annotate_text = camera_annotation
         camera.start_preview()
         time.sleep(1)
-        camera.capture(ir_folder+"%s%04d%s" %("image",imagenumber,"_a"+".png"))
+        camera.capture(ir_folder+"%s%04d%s" %("image",imagenumber, ".png"))
         camera.stop_preview()
+        GPIO.output(output_enable, True)       # turn of mux enable (active low)
         camera.close()
         enable_camera_A()
 
