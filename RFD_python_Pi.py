@@ -484,23 +484,31 @@ while(True):
         camera.capture(folder+"%s%04d%s" %("image",imagenumber,"_a"+extension))
         print "( 2592 , 1944 ) photo saved"
 
-
         #read in lux value here for post_lux
         full, ir = tsl.get_full_luminosity()  # read raw values (full spectrum and ir spectrum)
         post_lux = tsl.calculate_lux(full, ir)  # convert raw values to lux
 
         fh = open(folder+"imagedata.txt","a")
         fh.write("%s%04d%s @ time(%s) settings(w=%d,h=%d,sh=%d,b=%d,c=%d,sa=%d,i=%d,pr=%d,po=%d)\n" % ("image",imagenumber,"_a"+extension,str(datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S")),2592,1944,sharpness,brightness,contrast,saturation,iso,pre_lux,post_lux))
+
+        # start of second photo "low res" 
         camera.resolution = (width,height)
         extension = '.jpg'
         camera.hflip = cam_hflip
         camera.vflip = cam_vflip
         camera.annotate_text = camera_annotation
+        #pre lux for next photo will be previous post lux if taken soon enough
+        pre_lux = post_lux
         camera.capture(folder+"%s%04d%s" %("image",imagenumber,"_b"+extension))
         print "(",width,",",height,") photo saved"
+        #read in lux value here for post_lux
+        full, ir = tsl.get_full_luminosity()  # read raw values (full spectrum and ir spectrum)
+        post_lux = tsl.calculate_lux(full, ir)  # convert raw values to lux
+
         fh.write("%s%04d%s @ time(%s) settings(w=%d,h=%d,sh=%d,b=%d,c=%d,sa=%d,i=%d,pr=%d,po=%d)\n" % ("image",imagenumber,"_b"+extension,str(datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S")),width,height,sharpness,brightness,contrast,saturation,iso,pre_lux,post_lux))
         print "settings file updated"
-        GPIO.output(output_enable, True)                 # turn off OE for camera mux
+
+        #GPIO.output(output_enable, True)                 # turn off OE for camera mux
         camera.stop_preview()            #   *** *** maybe stop preview before OE disabled  ***  ***
         #camera.close()
         #print "camera closed"
@@ -515,7 +523,7 @@ while(True):
         # *** start No IR camera sequence  ***
         #
         enable_camera_B()
-        GPIO.output(output_enable, False)     # enable  output on mux (active low)
+        #GPIO.output(output_enable, False)     # enable  output on mux (active low)
         time.sleep(.2)
         #camera.resolution = (3280,2464)
         camera.resolution = (2592,1944)
