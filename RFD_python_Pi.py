@@ -476,17 +476,29 @@ while(True):
         time.sleep(.2)
 
         #read in lux value here for pre_lux
-        full, ir = tsl.get_full_luminosity()  # read raw values (full spectrum and ir spectrum)
-        pre_lux = tsl.calculate_lux(full, ir)  # convert raw values to lux
+        #full, ir = tsl.get_full_luminosity()  # read raw values (full spectrum and ir spectrum)
+        #pre_lux = tsl.calculate_lux(full, ir)  # convert raw values to lux
 
         camera.start_preview()
         time.sleep(1)
+        #trying to get prelux as close to photo as possible,  *** may fool with camera and need to be moved before preview starts ***
+        try:
+            full, ir = tsl.get_full_luminosity()
+            pre_lux = tsl.calculate_lux(full, ir)
+        except:
+            pre_lux = 0
+            print "failed to read light sensor, pre_lux set to zero"
+
         camera.capture(folder+"%s%04d%s" %("image",imagenumber,"_a"+extension))
         print "( 2592 , 1944 ) photo saved"
 
         #read in lux value here for post_lux
-        full, ir = tsl.get_full_luminosity()  # read raw values (full spectrum and ir spectrum)
-        post_lux = tsl.calculate_lux(full, ir)  # convert raw values to lux
+        try:
+            full, ir = tsl.get_full_luminosity()  # read raw values (full spectrum and ir spectrum)
+            post_lux = tsl.calculate_lux(full, ir)  # convert raw values to lux
+        except:
+            post_lux = 0
+            print "failed to read light sensor, post_lux set to zero"
 
         fh = open(folder+"imagedata.txt","a")
         fh.write("%s%04d%s @ time(%s) settings(w=%d,h=%d,sh=%d,b=%d,c=%d,sa=%d,i=%d,pr=%d,po=%d)\n" % ("image",imagenumber,"_a"+extension,str(datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S")),2592,1944,sharpness,brightness,contrast,saturation,iso,pre_lux,post_lux))
@@ -502,8 +514,12 @@ while(True):
         camera.capture(folder+"%s%04d%s" %("image",imagenumber,"_b"+extension))
         print "(",width,",",height,") photo saved"
         #read in lux value here for post_lux
-        full, ir = tsl.get_full_luminosity()  # read raw values (full spectrum and ir spectrum)
-        post_lux = tsl.calculate_lux(full, ir)  # convert raw values to lux
+        try:
+            full, ir = tsl.get_full_luminosity()  # read raw values (full spectrum and ir spectrum)
+            post_lux = tsl.calculate_lux(full, ir)  # convert raw values to lux
+        except:
+            post_lux = 0
+            print "failed to read light sensor, post_lux set to zero"
 
         fh.write("%s%04d%s @ time(%s) settings(w=%d,h=%d,sh=%d,b=%d,c=%d,sa=%d,i=%d,pr=%d,po=%d)\n" % ("image",imagenumber,"_b"+extension,str(datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S")),width,height,sharpness,brightness,contrast,saturation,iso,pre_lux,post_lux))
         print "settings file updated"
@@ -533,6 +549,7 @@ while(True):
         camera.start_preview()
         time.sleep(1)
         camera.capture(ir_folder+"%s%04d%s" %("image",imagenumber, ".png"))
+        print "No IR filter photo saved"
         camera.stop_preview()
         GPIO.output(output_enable, True)       # turn of mux enable (active low)
         camera.close()
