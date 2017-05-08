@@ -314,7 +314,7 @@ class main:
         fh.close()
 
         ### Picture Variables ###
-        self.wordlength = 7000
+        self.wordlength = 10000
         self.imagenumber = 0
         self.recentimg = ""
         self.pic_interval = 60
@@ -496,7 +496,7 @@ class main:
             print "Sending:", self.recentimg
             self.ser.write(self.recentimg)
             self.send_image(self.folder+self.recentimg)            # Send the most recent image
-            self.wordlength = 7000                       # Reset the self.wordlength in case it was changed while sending
+            self.wordlength = 10000                       # Reset the self.wordlength in case it was changed while sending
         except:
             print "Send Recent Image Error"
 
@@ -527,7 +527,7 @@ class main:
                 temp = self.ser.read()
             imagetosend = self.ser.read(15)                  # Determine which picture to send
             self.send_image(self.folder+imagetosend)
-            self.wordlength = 7000
+            self.wordlength = 10000
         except Exception, e:
             print str(e)
 
