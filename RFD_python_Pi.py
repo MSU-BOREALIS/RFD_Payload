@@ -472,7 +472,7 @@ class main:
                 cur = cur + self.wordlength
                 trycnt = 0
             else:
-                if(trycnt < 5):                 # There are 5 tries to get the word through, each time you fail, drop the self.wordlength by 1000
+                if(trycnt < 7):                 # There are 5 tries to get the word through, each time you fail, drop the self.wordlength by 1000
                     if self.wordlength >1000:
                         self.wordlength -= 1000
                     self.sync()
