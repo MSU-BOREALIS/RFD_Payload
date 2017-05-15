@@ -35,7 +35,7 @@ AUTOSHUTDOWN = 1   # really only used if reading from a config file
 # GPIO.setmode(GPIO.BOARD)        # use board numbering for GPIO header vs broadcom **** broadcom used in adafruit library dependant stuff ****
 GPIO.setmode(GPIO.BCM)           # broadcom numbering, may not matter if not using oled or any adafruit libraries that need BCM
 GPIO.setwarnings(False)
-GPIO.setup(SWITCHGPIO, GPIO.IN, GPIO.pull_up_down = GPIO.PUD_UP)
+GPIO.setup(SWITCHGPIO, GPIO.IN, pull_up_down = GPIO.PUD_UP)
 
 # GPIO settings for camera mux
 GPIO.setup(selection, GPIO.OUT)         # mux "select"
