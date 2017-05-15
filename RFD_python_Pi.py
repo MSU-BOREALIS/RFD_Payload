@@ -29,9 +29,14 @@ import RPi.GPIO as GPIO
 selection = 4
 enable1 = 17
 enable2 = 18
+SWITCHGPIO = 8
+AUTOSHUTDOWN = 1   # really only used if reading from a config file
 
 # GPIO.setmode(GPIO.BOARD)        # use board numbering for GPIO header vs broadcom **** broadcom used in adafruit library dependant stuff ****
 GPIO.setmode(GPIO.BCM)           # broadcom numbering, may not matter if not using oled or any adafruit libraries that need BCM
+GPIO.setwarnings(False)
+GPIO.setup(SWITCHGPIO, GPIO.IN, GPIO.pull_up_down = GPIO.PUD_UP)
+
 # GPIO settings for camera mux
 GPIO.setup(selection, GPIO.OUT)         # mux "select"
 GPIO.setup(enable1, GPIO.OUT)           # mux "enable1"
@@ -100,6 +105,14 @@ cam_vflip = True                       # global variable for camera vertical fli
 
 
 #  ------------------------  Method/funciton defs  -------------------------------
+
+# switchCallback() called from event_detect (ISR)
+def switchCallback(channel):
+    global AUTOSHUTDOWN
+    
+    if AUTOSHUTDOWN == 1:
+        os.system('/sbin/shutdown -h now')
+    sys.exit(0)
 
 ###############################
 # Cameras B-D are used in the #
@@ -284,6 +297,8 @@ checkpoint = time.time()
 
 enable_camera_A()          # initialize the camera to something so mux is not floating
                            # maybe remove enabling camera if not using mxu???
+
+GPIO.add_event_detect(SWITCHGPIO, GPIO.FALLING, callback = switchCallback)
 # -------  last of inits and start program loop --------
 
 
