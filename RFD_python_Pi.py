@@ -23,6 +23,7 @@ import os
 import base64
 import hashlib
 import serial.tools.list_ports
+import RPI.GPIO as GPIO
 
 class GPSThread(threading.Thread):
     """ A thread to read in raw GPS information, and organize it for the main thread """
@@ -290,6 +291,13 @@ class main:
                 print('GPS on ' + str(each.device))
             print(each)
 
+        # GPIO inits
+        GPIO.setmode(GPIO.BCM)   # broadcom numbering
+        GPIO.setwarnings(False)
+        self.SWITCHGPIO = 8
+        self.AUTOSHUTDOWN = 1
+        GPIO.setup(self.SWITCHGPIO, GPIO.IN, pull_up_down = GPIO.PUD.UP)
+
         ### Serial Port Initializations ###
         #RFD900 Serial Variables
         self.rfdPort  = "/dev/ttyAMA0"   #"/dev/serial0"
@@ -386,6 +394,10 @@ class main:
         if(self.gpsEnabled):
             self.startGPSThread()
 
+    def switchCallback(channel):
+        if self.AUTOSHUTDOWN == 1:
+            os.system('/sbin/shutdown -h now')
+        sys.exit(0)
 
     def getGPSCom(self):
         return [self.gpsPort,self.gpsBaud,self.gpsTimeout]
@@ -774,6 +786,8 @@ class main:
                         self.ser.write('Alert: GPS is now disabled')
                     print("GPS is now Disabled")
 
+    #GPIO.add_event_detect(SWITCHGPIO, GPIO.FALLING, callback = switchCallback)  # init falling edge detection for switchCallback
+
     def loop(self):
         """ The main loop for the program """
         try:
@@ -999,7 +1013,9 @@ if __name__ == "__main__":
     except:
         loggingGPS = False
         print("Failed to create gpslog.txt")
-        
+
+    GPIO.add_event_detect(self.SWITCHGPIO, GPIO.FALLING, callback = switchCallback)
+
     mainLoop = main()
     while True:
         mainLoop.loop()
