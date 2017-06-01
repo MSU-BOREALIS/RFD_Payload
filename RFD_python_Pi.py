@@ -23,7 +23,10 @@ import os
 import base64
 import hashlib
 import serial.tools.list_ports
-import RPI.GPIO as GPIO
+import RPi.GPIO as GPIO
+
+SWITCHGPIO = 8      # use global vars here
+AUTOSHUTDOWN = 1    # use global vars here
 
 class GPSThread(threading.Thread):
     """ A thread to read in raw GPS information, and organize it for the main thread """
@@ -291,12 +294,6 @@ class main:
                 print('GPS on ' + str(each.device))
             print(each)
 
-        # GPIO inits
-        GPIO.setmode(GPIO.BCM)   # broadcom numbering
-        GPIO.setwarnings(False)
-        self.SWITCHGPIO = 8
-        self.AUTOSHUTDOWN = 1
-        GPIO.setup(self.SWITCHGPIO, GPIO.IN, pull_up_down = GPIO.PUD.UP)
 
         ### Serial Port Initializations ###
         #RFD900 Serial Variables
@@ -393,11 +390,6 @@ class main:
         # GPS
         if(self.gpsEnabled):
             self.startGPSThread()
-
-    def switchCallback(channel):
-        if self.AUTOSHUTDOWN == 1:
-            os.system('/sbin/shutdown -h now')
-        sys.exit(0)
 
     def getGPSCom(self):
         return [self.gpsPort,self.gpsBaud,self.gpsTimeout]
@@ -994,6 +986,13 @@ if __name__ == "__main__":
     if not os.path.exists(dir):
         os.mkdir(dir)
 
+    def switchCallback(channel):
+        global AUTOSHUTDOWN
+
+        if AUTOSHUTDOWN == 1:
+            os.system('/sbin/shutdown -h now')
+        sys.exit(0)
+
     ### Create the logfile ###
     try:
         logfile = open(folder+"piruntimedata.txt","w")
@@ -1014,7 +1013,10 @@ if __name__ == "__main__":
         loggingGPS = False
         print("Failed to create gpslog.txt")
 
-    GPIO.add_event_detect(self.SWITCHGPIO, GPIO.FALLING, callback = switchCallback)
+    GPIO.setmode(GPIO.BCM)   # broadcom numbering
+    GPIO.setwarnings(False)
+    GPIO.setup(SWITCHGPIO, GPIO.IN, pull_up_down = GPIO.PUD_UP)
+    GPIO.add_event_detect(SWITCHGPIO, GPIO.FALLING, callback = switchCallback)
 
     mainLoop = main()
     while True:
