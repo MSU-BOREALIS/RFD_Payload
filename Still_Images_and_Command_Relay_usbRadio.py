@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Still Images and Command Relay for Raspberry Pi with Xbee and RFD 900+ 
+Still Images and Command Relay for Raspberry Pi with Xbee and RFD 900+
 
 Author:	Austin Langford, AEM, MnSGC
 Based on work from the Montana Space Grant Consortium
@@ -73,7 +73,7 @@ class GPSThread(threading.Thread):
                         else:
                             alt = float(line[9])
                         sat = int(line[7])
-                        
+
                         ### Organize the GPS info, and put it in the queue ###
                         gpsStr = str(hours)+','+ str(minutes)+','+ str(seconds)+','+ str(lat)+','+str(lon)+','+str(alt)+','+str(sat)+'!'+'\n'
                         self.gpsQ.put(gpsStr)
@@ -86,10 +86,10 @@ class GPSThread(threading.Thread):
                             except Exception, e:
                                 print("Error logging GPS")
                                 self.exceptionsQ.put(str(e))
-                
+
                     except Exception,e:
                         self.exceptionsQ.put(str(e))
-                        
+
         ### Catches unexpected errors ###
         except Exception, e:
             self.exceptionsQ.put(str(e))
@@ -119,7 +119,7 @@ class TempThread(threading.Thread):
             temp_c = float(temp_string)/1000.0
             temp_f = temp_c*9.0/5.0 + 32.0
             return temp_c, temp_f
-        
+
     def run(self):
         global folder
         try:
@@ -136,7 +136,7 @@ class TempThread(threading.Thread):
                     except Exception, e:
                         print(str(e))
                         self.exceptionsQ.put(str(e))
-                        
+
         ### Catches unexpected errors ###
         except Exception, e:
             self.exceptionsQ.put(str(e))
@@ -178,11 +178,11 @@ class XbeeSendThread(threading.Thread):
                 while(not self.sendQ.empty()):              # If there are items in the sendQ, send them out the xbee
                     temp = self.sendQ.get()
                     self.xbee.write(str(self.sendQ.get()).encode())
-                    
+
             except Exception, e:                            # Catch any unexpected error, and notify the main thread of them
                 self.exceptionsQ.put(str(e))
                 self.resetFlagQ.put('reset')
-                
+
 class TakePicture(threading.Thread):
     """ Thread to take two pictures, one at full resolution, the other at the selected resolution """
     def __init__(self, threadID, cameraSettings,folder,imagenumber,picQ):        # Constructor
@@ -201,7 +201,7 @@ class TakePicture(threading.Thread):
         except:
             self.q.put('No Cam')        # If the camera fails to open, make sure the loop gets notified
             return
-        
+
         try:
             settings = self.cameraSettings.getSettings()
             width = settings[0]
@@ -275,7 +275,7 @@ class CameraSettings:
 
     def getSettingsString(self):
         return str(self.width) + ',' + str(self.height) + ',' + str(self.sharpness) + ',' + str(self.brightness) + ',' + str(self.contrast) + ',' + str(self.saturation) + ',' + str(self.iso)
-    
+
     def setCameraAnnotation(self,annotation):
         self.annotation = annotation
 
@@ -313,7 +313,7 @@ class CameraSettings:
         self.resolution = (self.width,self.height)
 
 class main:
-        
+
     """ The main program class """
     def __init__(self):
         global folder, loggingGPS, loggingTemp
@@ -372,10 +372,10 @@ class main:
         self.imagenumber = 0
         self.recentimg = ""
         self.pic_interval = 60
-        self.cameraSettings = CameraSettings(150,100,0,50,0,0,400)
+        self.cameraSettings = CameraSettings(650,450,0,50,0,0,400)
         self.reset_cam()
         self.takingPicture = False
-		
+
         ### Create queues to share info with the threads
         self.xSendQ = Queue.Queue()
         self.xReceivedQ = Queue.Queue()
@@ -410,7 +410,7 @@ class main:
             if(self.rfdEnabled):
                 self.ser.write('Alert: Camera is disabled\n')
             print('Camera disabled')
-            
+
         # Xbee
         try:
             self.xbee = serial.Serial(port = self.xPort, baudrate = self.xBaud, timeout = self.xTimeout)
@@ -420,7 +420,7 @@ class main:
             if(self.rfdEnabled):
                 self.ser.write('Alert: Xbee is disabled\n')
             print('Xbee disabled')
-            
+
         # GPS
         try:
             self.gps = gpsPort = serial.Serial(port = '/dev/gps', baudrate = 9600, timeout = 3)
@@ -443,14 +443,14 @@ class main:
                 print('Temp Sensor Disabled')
             else:
                 self.tempEnabled = True
-                
+
         except Exception, e:
             print(str(e))
             self.tempEnabled = False
             if(self.rfdEnabled):
                 self.ser.write('Alert: Temp Sensor is disabled\n')
             print('Temp Sensor Disabled')
-                
+
         ### Start the appropriate side threads ###
         # Xbee
         if(self.xbeeEnabled):
@@ -481,7 +481,7 @@ class main:
 
     def reset_cam(self):
         """ Resets the camera to the default settings """
-        self.cameraSettings = CameraSettings(150,100,0,50,0,0,400)
+        self.cameraSettings = CameraSettings(650,450,0,50,0,0,400)
 
     def image_to_b64(self,path):
         """ Converts an image to 64 bit encoding """
@@ -626,12 +626,12 @@ class main:
             self.ser.reset_input_buffer()
             killTime = time.time() + 10
             self.ser.reset_input_buffer()
-            
+
             temp = self.ser.readline()
             while(temp.split('/')[0] != "RQ" and time.time() < killTime):
                 self.ser.write('Ack1\n')
                 temp = self.ser.readline()
-                
+
             if time.time() > killTime:
                 return
             else:
@@ -646,13 +646,13 @@ class main:
                             each = int(each)
                         except:
                             fail = True
-                            
+
                 if fail == False:
                     self.cameraSettings.newSettings(settingsLst)
                     print "Camera Settings Updated"
                     self.ser.write('Ack2\n')
                     self.ser.reset_input_buffer()
-                    
+
         except Exception, e:
             print str(e)
             self.reset_cam()
@@ -662,7 +662,7 @@ class main:
         self.ser.write('A')
         try:
             print "Time Sync Request Recieved"
-            
+
             timeval=str(datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S"))+"\n"     # Send the data time down to the ground station
             for x in timeval:
                 self.ser.write(x)
@@ -914,7 +914,7 @@ class main:
                 else:
                     if(self.xbeeEnabled):
                         if(command != ''):
-                            self.xSendQ.put(command)      # Adds the command to the xbee send list so the xbee thread can send it out      
+                            self.xSendQ.put(command)      # Adds the command to the xbee send list so the xbee thread can send it out
 
                 ### Send information to the ground station ###
                 # Send a GPS update through the RFD
@@ -940,7 +940,7 @@ class main:
                 if(self.xbeeEnabled):
                     while(not self.xReceivedQ.empty()):
                         self.ser.write(self.xReceivedQ.get())
-                        
+
             self.checkSideThreads()             # Make sure the side threads are still going strong
 
             ### Periodically take a picture ###
@@ -960,7 +960,7 @@ class main:
                         self.picThread = TakePicture("Picture Thread",self.cameraSettings, self.folder,self.imagenumber,self.picQ)
                         self.picThread.daemon = True
                         self.picThread.start()
-                
+
             ### Check for picture stuff ###
             if(self.cameraEnabled):
                 if(not self.picQ.empty()):
@@ -980,10 +980,10 @@ class main:
                     else:
                         while(not self.picQ.empty()):                   # Clear the queue of any unexpected messages
                             print(self.picQ.get())
-            
+
             if(self.rfdEnabled):
                 self.ser.reset_input_buffer()       # Clear the input buffer so we're ready for a new command to be received
-            
+
             ### Print out any exceptions that the threads have experienced ###
             if(self.gpsEnabled):
                 while(not self.gpsExceptionsQ.empty()):
@@ -1025,7 +1025,7 @@ class main:
                         if(self.rfdEnabled):
                             self.ser.write('Temp Sensor is now Enabled')
                         print("Temp Sensor Enabled")
-                        
+
                 except Exception, e:
                     pass
 
@@ -1048,7 +1048,7 @@ class main:
                             except Exception, e:
                                 pass
 
-            # RFD and GPS Check           
+            # RFD and GPS Check
             if (not self.gpsEnabled) or (not self.rfdEnabled):
                 ports = serial.tools.list_ports.comports()
                 for each in ports:
@@ -1077,7 +1077,7 @@ class main:
         except KeyboardInterrupt:       # For debugging pruposes, close the RFD port and quit if you get a keyboard interrupt
             self.ser.close()
             quit()
-            			
+
         except Exception, e:            # Print any exceptions from the main loop
             print(str(e))
 
@@ -1107,7 +1107,7 @@ if __name__ == "__main__":
     except:
         loggingGPS = False
         print("Failed to create gpslog.txt")
-        
+
     try:
         tempLog = open(folder+"templog.txt","a")
         tempLog.close()
@@ -1115,8 +1115,7 @@ if __name__ == "__main__":
     except:
         loggingTemp = False
         print("Failed to create templog.txt")
-        
+
     mainLoop = main()
     while True:
         mainLoop.loop()
-
