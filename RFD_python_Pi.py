@@ -2,7 +2,7 @@
 Still Images and Command Relay for Raspberry Pi with Xbee and RFD 900+    
 
 Author: Austin Langford, AEM
-Based on work from Scott Miller, CpE, Dylan Trafford, CpE, and David Schwerr of the Montana Space Grant Consortium
+Based on work from Scott Miller, CpE, Dylan Trafford, CpE, and David Schwehr of the Montana Space Grant Consortium
 Software created for use by the Minnesota Space Grant Consortium
 Purpose: To communicate with a ground transceiver to receive commands, relay them through the xbee, and to send images
 Additional Features: RFD 900 based Command Center and Image Reception
@@ -323,7 +323,7 @@ class main:
         self.imagenumber = 0
         self.recentimg = ""
         self.pic_interval = 60
-        self.cameraSettings = CameraSettings(650,450,0,50,0,0,400)
+        self.cameraSettings = CameraSettings(650,450,0,50,0,0,100)
         self.reset_cam()
         self.starttime = time.time()
         print "Started at @ ",datetime.datetime.now()
@@ -402,7 +402,7 @@ class main:
 
     def reset_cam(self):
         """ Resets the camera to the default settings """
-        self.cameraSettings = CameraSettings(650,450,0,50,0,0,400)
+        self.cameraSettings = CameraSettings(650,450,0,50,0,0,100)
 ##        f = open(self.folder + "camerasettings.txt","w")
 ##        f.write(str(self.cameraSettings.getWidth())+"\n")
 ##        f.write(str(self.cameraSettings.getHeight())+"\n")
@@ -1016,6 +1016,7 @@ if __name__ == "__main__":
     GPIO.setmode(GPIO.BCM)   # broadcom numbering
     GPIO.setwarnings(False)
     GPIO.setup(SWITCHGPIO, GPIO.IN, pull_up_down = GPIO.PUD_UP)
+    time.sleep(2)
     GPIO.add_event_detect(SWITCHGPIO, GPIO.FALLING, callback = switchCallback)
 
     mainLoop = main()
