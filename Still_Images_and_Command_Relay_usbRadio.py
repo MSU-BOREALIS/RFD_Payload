@@ -1083,7 +1083,7 @@ class main:
 
 if __name__ == "__main__":
     ### Check for, and create the folder for this flight ###
-    folder = "/home/pi/RFD_Pi_Code/%s/" % strftime("%m%d%Y_%H%M%S")
+    folder = "/home/pi/RFD_Pics_Logs/%s/" % strftime("%m%d%Y_%H%M%S")
     dir = os.path.dirname(folder)
     if(not os.path.exists(dir)):
         os.mkdir(dir)
