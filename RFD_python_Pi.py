@@ -58,7 +58,7 @@ ser = serial.Serial(port = port, baudrate = baud, timeout = timeout)
 pic_interval = 60
 extension = ".jpg"
 #  **** folder can be machine specific  ****
-folder = "/home/pi/RFD_Pics/%s/" % strftime("%m%d%Y_%H%M%S")
+folder = "/home/pi/RFD_Pics_Logs/%s/" % strftime("%m%d%Y_%H%M%S")
 
 dir = os.path.dirname(folder)
 if not os.path.exists(dir):
