@@ -372,7 +372,7 @@ class main:
         self.imagenumber = 0
         self.recentimg = ""
         self.pic_interval = 60
-        self.cameraSettings = CameraSettings(650,450,0,50,0,0,400)
+        self.cameraSettings = CameraSettings(650,450,0,50,0,0,100)
         self.reset_cam()
         self.takingPicture = False
 
@@ -481,7 +481,7 @@ class main:
 
     def reset_cam(self):
         """ Resets the camera to the default settings """
-        self.cameraSettings = CameraSettings(650,450,0,50,0,0,400)
+        self.cameraSettings = CameraSettings(650,450,0,50,0,0,100)
 
     def image_to_b64(self,path):
         """ Converts an image to 64 bit encoding """
