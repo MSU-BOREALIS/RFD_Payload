@@ -24,13 +24,6 @@ import base64
 import hashlib
 import serial.tools.list_ports
 
-os.system('modprobe w1-gpio')
-os.system('modprobe w1-therm')
-
-temp_sensor = '/sys/bus/w1/devices/28-00000522ec61/w1_slave'
-
-rfdPort = serial.Serial(port = "/dev/ttyAMA0", baudrate = 38400, timeout = 5)
-gpsPort = serial.Serial(port = '/dev/gps', baudrate = 9600, timeout = 3)
 
 class GPSThread(threading.Thread):
     """ A thread to read in raw GPS information, and organize it for the main thread """
@@ -42,6 +35,16 @@ class GPSThread(threading.Thread):
         self.exceptionsQ = exceptions
         self.resetFlagQ = resetFlag
         self.loggingGPS = loggingGPS
+        os.system('modprobe w1-gpio')
+        os.system('modprobe w1-therm')
+
+        temp_sensor = '/sys/bus/w1/devices/28-00000522ec61/w1_slave'
+        rfdPort = serial.Serial(port = "/dev/ttyAMA0", baudrate = 38400, timeout = 5)
+        try:
+            gpsPort = serial.Serial(port = '/dev/gps', baudrate = 9600, timeout = 3)
+        except:
+            self.gpsEnabled = False
+            print("Unable to find GPS")
 
     def run(self):
         global folder
