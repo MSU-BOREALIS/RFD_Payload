@@ -603,7 +603,7 @@ class main:
     def sendDeviceStatus(self):
         """ Returns the status of the serial devices to the ground station """
         try:
-            status = 'Camera: '+str(self.cameraEnabled)+', GPS: '+str(self.gpsEnabled)+'
+            status = 'Camera: '+str(self.cameraEnabled)+', GPS: '+str(self.gpsEnabled)
             self.ser.write(status)
             print('Status Sent')
         except Exception, e:
