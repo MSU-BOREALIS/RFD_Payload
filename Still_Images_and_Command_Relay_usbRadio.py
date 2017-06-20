@@ -380,8 +380,7 @@ class main:
 
     def send_image(self,exportpath):
         """ Sends the image through the RFD in increments of size self.wordlength """
-        sys.stdout.flush()
-        timecheck = time.time()
+	timecheck = time.time()
         done = False
         cur = 0
         trycnt = 0
@@ -413,21 +412,23 @@ class main:
                     print "error out"
                     cur = len(outbound)
         print "Image Send Complete"
-        print "Send Time =", (time.time() - timecheck)
+	print "Send Time =", (time.time() - timecheck)
         return
 
     def mostRecentImage(self):
         """ Command 1: Send most recent image """
-        sys.stdout.flush()
-        self.ser.flush()
-        self.ser.write('A')      # Send the acknowledge
-        try:
+        #sys.stdout.flush()
+        #self.ser.flush()
+	self.ser.write('A')      # Send the acknowledge
+	try:
             print "Send Image Command Received"
             print "Sending:", self.recentimg
             self.ser.write(self.recentimg)
+	    self.gps.close()
             self.send_image(self.folder+self.recentimg)            # Send the most recent image
             self.wordlength = 7000                       # Reset the self.wordlength in case it was changed while sending
-        except:
+            self.startGPSThread()
+	except:
             print "Send Recent Image Error"
 
     def sendImageData(self):
@@ -594,7 +595,8 @@ class main:
     def verticalFlip(self):
         """ Flips the pictures vertically """
         self.ser.write('A')
-        try:
+        self.ser.write('A')
+	try:
             self.cameraSettings.toggleVerticalFlip()
             print("Camera Flipped Vertically")
         except:
